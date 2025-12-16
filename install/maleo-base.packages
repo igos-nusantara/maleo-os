@@ -1,0 +1,181 @@
+# Maleo Fedora Remix - Base Package List
+# Converted from Omarchy (Arch) to Fedora equivalents
+
+# Base System
+bash-completion
+less
+man-db
+unzip
+wget
+curl
+git
+rsync
+htop
+btop
+inxi
+fastfetch
+
+# Hyprland and Wayland Stack
+hyprland
+hyprpicker
+hypridle
+hyprlock
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+qt5-qtwayland
+qt6-qtwayland
+wl-clipboard
+wlr-randr
+grim
+slurp
+swappy
+waybar
+mako
+swaybg
+swayidle
+
+# Display Manager
+sddm
+sddm-themes
+
+# Audio
+pipewire
+pipewire-alsa
+pipewire-pulseaudio
+pipewire-jack-audio-connection-kit
+wireplumber
+pamixer
+playerctl
+
+# Fonts
+google-noto-sans-fonts
+google-noto-serif-fonts
+google-noto-emoji-fonts
+google-noto-sans-cjk-fonts
+jetbrains-mono-fonts
+cascadia-code-fonts
+liberation-fonts
+dejavu-fonts
+
+# Terminal Emulators
+alacritty
+kitty
+
+# File Manager
+nautilus
+nautilus-extensions
+sushi
+gvfs
+gvfs-mtp
+gvfs-smb
+gvfs-nfs
+
+# Development Tools
+neovim
+vim-enhanced
+gcc
+clang
+llvm
+make
+cmake
+automake
+autoconf
+git
+git-lfs
+github-cli
+lazygit
+docker-ce
+docker-ce-cli
+containerd.io
+docker-buildx-plugin
+docker-compose-plugin
+
+# Shell and CLI Tools
+zsh
+fish
+starship
+zoxide
+fzf
+ripgrep
+fd-find
+bat
+eza
+dust
+tldr
+jq
+yq
+
+# System Utilities
+brightnessctl
+NetworkManager
+NetworkManager-wifi
+bluez
+bluez-tools
+ufw
+firewalld
+polkit
+polkit-gnome
+gnome-keyring
+libsecret
+avahi
+cups
+cups-filters
+system-config-printer
+
+# Image and Video
+mpv
+imv
+ffmpeg
+ffmpegthumbnailer
+imagemagick
+
+# Office and Productivity
+libreoffice
+evince
+gnome-calculator
+
+# Browsers
+chromium
+firefox
+
+# Communication
+# Note: Signal, Spotify, etc. may need Flatpak or third-party repos
+
+# Themes and Appearance
+gnome-themes-extra
+papirus-icon-theme
+breeze-icon-theme
+kvantum
+
+# Power Management
+power-profiles-daemon
+tlp
+tlp-rdw
+
+# Compression
+p7zip
+p7zip-plugins
+unrar
+
+# Python
+python3
+python3-pip
+python3-devel
+
+# Ruby
+ruby
+ruby-devel
+rubygems
+
+# Rust
+rust
+cargo
+
+# Node.js (via DNF, or use Nix/Mise for version management)
+nodejs
+npm
+
+# Misc
+neofetch
+tree
+plocate
