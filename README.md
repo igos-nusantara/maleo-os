@@ -1,6 +1,6 @@
 # Maleo Fedora Remix
 
-![Maleo Logo](branding/logo.svg)
+![Maleo Logo](branding/logo.png)
 
 **Maleo** adalah Fedora Remix yang menggabungkan konfigurasi desktop Omarchy (Hyprland-based) dengan Nix package manager untuk memberikan pengalaman development yang modern, indah, dan fleksibel.
 
