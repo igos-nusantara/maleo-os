@@ -10,7 +10,7 @@ fi
 
 if [ ! -f "$IMG_FILE" ]; then
     echo "Creating $IMG_FILE..."
-    qemu-img create -f qcow2 "$IMG_FILE" 10G
+    qemu-img create -f qcow2 "$IMG_FILE" 20G
 else
     echo "Using existing $IMG_FILE"
 fi

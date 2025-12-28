@@ -14,7 +14,7 @@ timezone America/New_York --utc
 rootpw --plaintext maleo
 
 # User creation
-user --name=maleo --groups=wheel --plaintext --password=maleo
+user --name=maleo --groups=wheel --plaintext --password=maleo --uid=1000
 
 # System authorization
 authselect select sssd
@@ -114,19 +114,23 @@ sddm-kcm
 # Post-installation script
 %post --log=/root/maleo-kickstart-post.log
 
+# Create maleo user manually (kickstart user command doesn't work reliably for livecd)
+echo "Creating maleo user..."
+useradd -m -u 1000 -G wheel -s /bin/bash maleo
+echo "maleo:maleo" | chpasswd
+
 # Enable graphical login
 systemctl set-default graphical.target
 systemctl enable sddm
 
-# Allow empty passwords
-sed -i 's/nullok_secure/nullok/' /etc/pam.d/system-auth
-sed -i 's/nullok_secure/nullok/' /etc/pam.d/password-auth
+# Allow empty passwords for PAM
+sed -i 's/nullok_secure/nullok/' /etc/pam.d/system-auth 2>/dev/null || true
+sed -i 's/nullok_secure/nullok/' /etc/pam.d/password-auth 2>/dev/null || true
 
-# Remove passwords for root and maleo
+# Remove password for root (keep maleo with password for now)
 passwd -d root
-passwd -d maleo
 
-# Configure SDDM autologin (optional, but good for Live)
+# Configure SDDM
 mkdir -p /etc/sddm.conf.d
 cat > /etc/sddm.conf.d/autologin.conf << EOF
 [Autologin]
@@ -134,54 +138,143 @@ User=maleo
 Session=hyprland
 EOF
 
-# Create maleo directory
+cat > /etc/sddm.conf.d/users.conf << EOF
+[Users]
+MaximumUid=60000
+MinimumUid=1000
+HideShells=
+RememberLastUser=false
+EOF
+
+# Grant passwordless sudo to wheel group
+echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel-nopasswd
+chmod 440 /etc/sudoers.d/wheel-nopasswd
+
+# Create basic Hyprland config for all users
+mkdir -p /etc/skel/.config/hypr
+cat > /etc/skel/.config/hypr/hyprland.conf << 'HYPREOF'
+# Maleo Hyprland Configuration
+exec-once = waybar
+exec-once = mako
+
+# Monitor configuration
+monitor=,preferred,auto,1
+
+# Input configuration
+input {
+    kb_layout = us
+    follow_mouse = 1
+}
+
+# General settings
+general {
+    gaps_in = 5
+    gaps_out = 10
+    border_size = 2
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+    layout = dwindle
+}
+
+# Decoration
+decoration {
+    rounding = 10
+    blur {
+        enabled = true
+        size = 3
+        passes = 1
+    }
+    drop_shadow = yes
+    shadow_range = 4
+    shadow_render_power = 3
+}
+
+# Animations
+animations {
+    enabled = yes
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+    animation = windows, 1, 7, myBezier
+    animation = windowsOut, 1, 7, default, popin 80%
+    animation = border, 1, 10, default
+    animation = fade, 1, 7, default
+    animation = workspaces, 1, 6, default
+}
+
+# Keybindings
+$mainMod = SUPER
+bind = $mainMod, RETURN, exec, kitty
+bind = $mainMod, Q, killactive,
+bind = $mainMod, M, exit,
+bind = $mainMod, E, exec, thunar
+bind = $mainMod, V, togglefloating,
+bind = $mainMod, D, exec, rofi -show drun
+
+# Move focus
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+# Switch workspaces
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+
+# Move window to workspace
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+HYPREOF
+
+# Copy install scripts to system (they're already in the build context)
+# Note: The install/ directory from the repo is available during build
 mkdir -p /usr/share/maleo
-
-# Download Maleo installer
-cd /tmp
-git clone https://github.com/igos-nusantara/maleo-os.git
-cp -r maleo-os/* /usr/share/maleo/
-
-# Pre-configure 'maleo' user
-echo "Configuring maleo user..."
-MALEO_HOME="/home/maleo"
-MALEO_SHARE="$MALEO_HOME/.local/share/maleo"
-MALEO_CONFIG="$MALEO_HOME/.config"
-
-# Create directories
-mkdir -p "$MALEO_SHARE"
-mkdir -p "$MALEO_CONFIG"
-
-# Copy Maleo files
-cp -r /usr/share/maleo/* "$MALEO_SHARE/"
-
-# Deploy configs
-cp -r "$MALEO_SHARE/config/"* "$MALEO_CONFIG/"
-
-# Set default theme (Catppuccin)
-mkdir -p "$MALEO_CONFIG/maleo/current"
-ln -sf "$MALEO_SHARE/themes/catppuccin" "$MALEO_CONFIG/maleo/current/theme"
-
-# Fix permissions
-chown -R maleo:maleo "$MALEO_HOME"
-
-# Create first-run script (updated to reflect pre-install)
-cat > /etc/profile.d/maleo-first-run.sh << 'EOF'
-if [ ! -f "$HOME/.maleo-installed" ]; then
-    echo "Welcome to Maleo Fedora Remix!"
-    touch "$HOME/.maleo-installed"
+if [ -d /maleo-os/install ]; then
+    cp -r /maleo-os/install /usr/share/maleo/
+    cp -r /maleo-os/config /usr/share/maleo/ 2>/dev/null || true
+    cp -r /maleo-os/themes /usr/share/maleo/ 2>/dev/null || true
 fi
-EOF
 
-# Create maleo-install command
-cat > /usr/local/bin/maleo-install << 'EOF'
+# Create maleo-install command for post-boot configuration
+cat > /usr/local/bin/maleo-install << 'INSTALLEOF'
 #!/bin/bash
-cp -r /usr/share/maleo ~/.local/share/maleo
+
+# Check if install scripts exist
+if [ ! -d /usr/share/maleo/install ]; then
+    echo "Error: Maleo install scripts not found!"
+    echo "Please clone the repository: git clone https://github.com/igos-nusantara/maleo-os.git"
+    exit 1
+fi
+
+# Copy to user directory
+mkdir -p ~/.local/share/maleo
+cp -r /usr/share/maleo/* ~/.local/share/maleo/
+
+# Run installer
 cd ~/.local/share/maleo
-./install/install.sh
-touch ~/.maleo-installed
-EOF
+if [ -f install/install.sh ]; then
+    ./install/install.sh
+    touch ~/.maleo-installed
+else
+    echo "Error: install.sh not found!"
+    exit 1
+fi
+INSTALLEOF
 
 chmod +x /usr/local/bin/maleo-install
+
+# Create welcome message
+cat > /etc/profile.d/maleo-welcome.sh << 'WELCOMEEOF'
+if [ ! -f "$HOME/.maleo-installed" ] && [ -n "$PS1" ]; then
+    echo ""
+    echo "Welcome to MaleoOS!"
+    echo "To install additional configurations, run: maleo-install"
+    echo ""
+fi
+WELCOMEEOF
 
 %end
