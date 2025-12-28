@@ -1,18 +1,18 @@
-# Maleo Fedora Remix
+# MaleoOS
 
 ![Maleo Logo](branding/logo.png)
 
-**Maleo** adalah Fedora Remix yang menggabungkan konfigurasi desktop Omarchy (Hyprland-based) dengan Nix package manager untuk memberikan pengalaman development yang modern, indah, dan fleksibel.
+**MaleoOS** is a project by **IGOS Nusantara**. It is a Fedora Remix that combines the Omarchy desktop configuration (Hyprland-based) with the Nix package manager to provide a modern, beautiful, and flexible development experience.
 
-## 🎯 Fitur Utama
+## 🎯 Key Features
 
-- **Hyprland Desktop Environment** - Modern tiling window manager berbasis Wayland
-- **Omarchy-Inspired Configuration** - Konfigurasi desktop yang indah dan produktif
-- **Nix Package Manager** - Fleksibilitas package management dengan Nix
-- **Multiple Themes** - Catppuccin, Nord, Gruvbox, Tokyo Night, dan lainnya
-- **Developer-Focused** - Pre-configured tools untuk development
+- **Hyprland Desktop Environment** - Modern tiling window manager based on Wayland
+- **Omarchy-Inspired Configuration** - Beautiful and productive desktop configuration
+- **Nix Package Manager** - Flexible package management with Nix
+- **Multiple Themes** - Catppuccin, Nord, Gruvbox, Tokyo Night, and others
+- **Developer-Focused** - Pre-configured tools for development
 
-## 📦 Apa yang Termasuk?
+## 📦 What's Included?
 
 ### Desktop Environment
 - Hyprland - Tiling window manager
@@ -39,16 +39,16 @@
 
 ### Option 1: ISO Installation
 
-1. Download ISO dari [Releases](https://github.com/yourusername/maleo-fedora-remix/releases)
-2. Burn ke USB menggunakan Fedora Media Writer atau `dd`
-3. Boot dari USB dan ikuti installer
+1. Download ISO from [Releases](https://github.com/igos-nusantara/maleo-os/releases)
+2. Burn to USB using Fedora Media Writer or `dd`
+3. Boot from USB and follow the installer
 
 ### Option 2: Install on Existing Fedora
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/maleo-fedora-remix.git
-cd maleo-fedora-remix
+git clone https://github.com/igos-nusantara/maleo-os.git
+cd maleo-os
 
 # Run installer
 chmod +x install/install.sh
@@ -57,7 +57,7 @@ chmod +x install/install.sh
 
 ## 🎨 Themes
 
-Maleo hadir dengan beberapa theme pre-installed:
+Maleo comes with several pre-installed themes:
 - **Catppuccin** (default)
 - Nord
 - Gruvbox
@@ -65,14 +65,14 @@ Maleo hadir dengan beberapa theme pre-installed:
 - Everforest
 - Rose Pine
 
-Ganti theme dengan:
+Change theme with:
 ```bash
 maleo-theme set catppuccin
 ```
 
 ## 🔧 Configuration
 
-Konfigurasi utama berada di:
+Main configuration files are located at:
 - `~/.config/hypr/` - Hyprland configuration
 - `~/.config/waybar/` - Waybar configuration
 - `~/.config/mako/` - Notification configuration
@@ -92,13 +92,23 @@ Requirements:
 - `livecd-tools` package
 - At least 20GB free disk space
 
+### Option 1: Legacy Builder
+
 ```bash
 # Install build dependencies
-sudo dnf install livecd-tools spin-kickstarts
+sudo dnf install livecd-tools
 
 # Build ISO
 cd build
 sudo ./build-iso.sh
+```
+
+### Option 2: Docker Builder (Recommended)
+
+Build without installing dependencies on your host. Requires Docker or Podman.
+
+```bash
+./build/build-docker.sh
 ```
 
 ## 🤝 Contributing
@@ -107,10 +117,11 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 ## 📄 License
 
-Maleo Fedora Remix is released under the MIT License. See [LICENSE](LICENSE) for details.
+MaleoOS is released under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## 🙏 Credits
 
+- **IGOS Nusantara** - Project Maintainer
 - **Omarchy** - Original configuration and inspiration by DHH
 - **Fedora Project** - Base distribution
 - **Hyprland** - Window manager

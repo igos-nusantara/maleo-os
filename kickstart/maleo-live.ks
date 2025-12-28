@@ -26,8 +26,8 @@ selinux --permissive
 firewall --enabled --service=mdns
 
 # Network information
-network --bootproto=dhcp --device=link --activate
-network --hostname=maleo
+# network --bootproto=dhcp --device=link --activate
+# network --hostname=maleo
 
 # Use network installation
 url --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-43&arch=x86_64"
@@ -35,11 +35,13 @@ url --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-43&ar
 # Repositories
 repo --name=fedora --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-43&arch=x86_64"
 repo --name=updates --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f43&arch=x86_64"
-repo --name=rpmfusion-free --metalink="https://mirrors.rpmfusion.org/metalink?repo=free-fedora-43&arch=x86_64"
-repo --name=rpmfusion-nonfree --metalink="https://mirrors.rpmfusion.org/metalink?repo=nonfree-fedora-43&arch=x86_64"
+# repo --name=rpmfusion-free --metalink="https://mirrors.rpmfusion.org/metalink?repo=free-fedora-43&arch=x86_64"
+# repo --name=rpmfusion-nonfree --metalink="https://mirrors.rpmfusion.org/metalink?repo=nonfree-fedora-43&arch=x86_64"
+repo --name=rpmfusion-free --baseurl="http://mirror.web-ster.com/rpmfusion/free/fedora/releases/43/Everything/x86_64/os/"
+repo --name=rpmfusion-nonfree --baseurl="http://mirror.web-ster.com/rpmfusion/nonfree/fedora/releases/43/Everything/x86_64/os/"
 
 # System bootloader configuration
-bootloader --location=mbr --boot-drive=sda --timeout=5
+bootloader --location=mbr --boot-drive=sda --timeout=5 --append="rhgb quiet"
 
 # Clear the Master Boot Record
 zerombr
@@ -62,6 +64,15 @@ reboot
 %packages
 @^custom-environment
 @base-x
+# Bootloader and Kernel
+kernel
+kernel-modules
+kernel-modules-extra
+grub2
+grub2-efi
+shim
+syslinux
+dracut-live
 @fonts
 @hardware-support
 @multimedia
@@ -94,8 +105,8 @@ mkdir -p /usr/share/maleo
 
 # Download Maleo installer
 cd /tmp
-git clone https://github.com/yourusername/maleo-fedora-remix.git
-cp -r maleo-fedora-remix/* /usr/share/maleo/
+git clone https://github.com/igos-nusantara/maleo-os.git
+cp -r maleo-os/* /usr/share/maleo/
 
 # Create first-run script
 cat > /etc/profile.d/maleo-first-run.sh << 'EOF'

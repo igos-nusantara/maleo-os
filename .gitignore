@@ -1,0 +1,14 @@
+# Build artifacts
+output/
+*.iso
+*.sha256
+*.img
+
+# Temporary files
+/tmp/maleo.img
+/var/cache/maleo-build
+
+# Editor configs
+.vscode/
+.idea/
+*.swp
