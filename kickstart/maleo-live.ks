@@ -40,6 +40,7 @@ repo --name=updates --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?r
 repo --name=rpmfusion-free --baseurl="http://mirror.web-ster.com/rpmfusion/free/fedora/releases/43/Everything/x86_64/os/"
 repo --name=rpmfusion-nonfree --baseurl="http://mirror.web-ster.com/rpmfusion/nonfree/fedora/releases/43/Everything/x86_64/os/"
 repo --name=solopasha-hyprland --baseurl="https://download.copr.fedorainfracloud.org/results/solopasha/hyprland/fedora-43-x86_64/"
+repo --name=epel-10 --baseurl="https://dl.fedoraproject.org/pub/epel/10/Everything/x86_64/"
 
 # System bootloader configuration
 bootloader --location=mbr --boot-drive=sda --timeout=5 --append="rhgb quiet"
@@ -82,7 +83,7 @@ dracut-live
 -@kde-desktop
 
 # System utilities
-# Omadora Packages
+
 alacritty
 bat
 bind-utils
@@ -206,57 +207,171 @@ EOF
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel-nopasswd
 chmod 440 /etc/sudoers.d/wheel-nopasswd
 
+# Create basic Hyprland config for maleo user
+mkdir -p /etc/skel/.config/hypr
+mkdir -p /etc/skel/.config/waybar
+
+# Waybar Config
+cat > /etc/skel/.config/waybar/config << 'WAYBARCONF'
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["network", "pulseaudio", "battery", "tray"],
+    "tray": {
+        "spacing": 10
+    },
+    "clock": {
+        "format": "{:%H:%M}  ",
+        "format-alt": "{:%A, %B %d, %Y}  "
+    },
+    "network": {
+        "format-wifi": "{essid} ({signalStrength}%) ",
+        "format-ethernet": "{ipaddr}/{cidr} ",
+        "tooltip-format": "{ifname} via {gwaddr} ",
+        "format-linked": "{ifname} (No IP) ",
+        "format-disconnected": "Disconnected ⚠",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+    "pulseaudio": {
+        "format": "{volume}% {icon}",
+        "format-muted": "",
+        "format-icons": {
+            "default": ["", ""]
+        },
+        "on-click": "pavucontrol"
+    }
+}
+WAYBARCONF
+
+# Waybar Style
+cat > /etc/skel/.config/waybar/style.css << 'WAYBARSTYLE'
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "Roboto", sans-serif;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(43, 48, 59, 0.5);
+    border-bottom: 3px solid rgba(100, 114, 125, 0.5);
+    color: #ffffff;
+}
+
+#workspaces button {
+    padding: 0 5px;
+    background-color: transparent;
+    color: #ffffff;
+}
+
+#workspaces button:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+#workspaces button.active {
+    background-color: #64727D;
+    border-bottom: 3px solid #ffffff;
+}
+
+#clock,
+#battery,
+#cpu,
+#memory,
+#disk,
+#network,
+#pulseaudio,
+#tray {
+    padding: 0 10px;
+    color: #ffffff;
+}
+
+#clock {
+    background-color: #64727D;
+}
+WAYBARSTYLE
+cat > /etc/skel/.config/hypr/hyprland.conf << 'HYPREOF'
+# Maleo Basic Hyprland Config
+monitor=,preferred,auto,1
+
+exec-once = waybar
+exec-once = mako
+exec-once = nm-applet --indicator
+
+input {
+    kb_layout = us
+    follow_mouse = 1
+}
+
+general {
+    gaps_in = 5
+    gaps_out = 10
+    border_size = 2
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+    layout = dwindle
+}
+
+decoration {
+    rounding = 10
+    blur {
+        enabled = true
+        size = 3
+        passes = 1
+    }
+    drop_shadow = yes
+    shadow_range = 4
+    shadow_render_power = 3
+}
+
+animations {
+    enabled = yes
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+    animation = windows, 1, 7, myBezier
+    animation = windowsOut, 1, 7, default, popin 80%
+    animation = border, 1, 10, default
+    animation = fade, 1, 7, default
+    animation = workspaces, 1, 6, default
+}
+
+$mainMod = SUPER
+bind = $mainMod, Q, exec, kitty
+bind = $mainMod, M, exit,
+bind = $mainMod, E, exec, thunar
+bind = $mainMod, V, togglefloating,
+bind = $mainMod, R, exec, rofi -show drun
+
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+bind = $mainMod, 6, workspace, 6
+bind = $mainMod, 7, workspace, 7
+bind = $mainMod, 8, workspace, 8
+bind = $mainMod, 9, workspace, 9
+bind = $mainMod, 0, workspace, 10
+
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+HYPREOF
+
 %end
 
 # Post-installation script (nochroot)
-%post --nochroot
 
-echo "Configuring Maleo..."
-INSTALL_ROOT=$INSTALL_ROOT
-
-# Copy configs from omadora (locally cloned)
-if [ -d /maleo-os/omadora ]; then
-    echo "Copying Omadora configs..."
-    mkdir -p $INSTALL_ROOT/etc/skel/.config
-    mkdir -p $INSTALL_ROOT/etc/skel/.local/share/maleo
-    mkdir -p $INSTALL_ROOT/usr/local/bin
-
-    # Copy configs
-    cp -r /maleo-os/omadora/config/* $INSTALL_ROOT/etc/skel/.config/
-    
-    # Copy themes/assets if available (checking structure)
-    if [ -d /maleo-os/omadora/themes ]; then
-        cp -r /maleo-os/omadora/themes $INSTALL_ROOT/etc/skel/.local/share/maleo/
-    fi
-
-    # Copy binaries
-    if [ -d /maleo-os/omadora/bin ]; then
-        cp -r /maleo-os/omadora/bin/* $INSTALL_ROOT/usr/local/bin/
-        chmod +x $INSTALL_ROOT/usr/local/bin/*
-    fi
-else
-    echo "Warning: omadora not found in build context!"
-fi
-
-# Rebrand Omadora -> Maleo in all copied configs
-find $INSTALL_ROOT/etc/skel/.config -type f -exec sed -i 's/Omadora/Maleo/g' {} +
-find $INSTALL_ROOT/etc/skel/.config -type f -exec sed -i 's/omadora/maleo/g' {} +
-
-# Fix hyprland.conf imports to point to ~/.config instead of ~/.local/share/omadora/default
-# Omadora uses a complex include structure. We might need to simplify it or ensure defaults are copied.
-# Checking omadora configs: it sources ~/.local/share/omadora/default/...
-# We need to copy 'default' folder to ~/.local/share/maleo/default
-
-if [ -d /maleo-os/omadora/default ]; then
-    mkdir -p $INSTALL_ROOT/etc/skel/.local/share/maleo/default
-    cp -r /maleo-os/omadora/default/* $INSTALL_ROOT/etc/skel/.local/share/maleo/default/
-fi
-
-# Fix paths in hyprland.conf
-sed -i 's|~/.local/share/omadora|~/.local/share/maleo|g' $INSTALL_ROOT/etc/skel/.config/hypr/hyprland.conf || true
-
-echo "Maleo configuration installed."
-
-%end
 
 
