@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ISO_FILE="output/maleo-20251228.iso"
+ISO_FILE="output/maleo-${1}.iso"
 IMG_FILE="/tmp/maleo.img"
 
 if [ ! -f "$ISO_FILE" ]; then
@@ -24,7 +24,7 @@ else
     ACCEL="-cpu qemu64"
 fi
 
-echo "Starting QEMU..."
+echo "Starting QEMU with ${ISO_FILE}..."
 echo "Connect via VNC at localhost:5900 (or :0)"
 
 qemu-system-x86_64 \

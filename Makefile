@@ -11,7 +11,7 @@ build:
 # Run the built ISO in QEMU
 run:
 	@echo "Starting QEMU..."
-	./qemu.sh
+	sudo ./qemu.sh $$(date +%Y%m%d)
 
 # Clean build artifacts
 clean:
