@@ -10,11 +10,11 @@ keyboard --vckeymap=us --xlayouts='us'
 # System timezone
 timezone America/New_York --utc
 
-# Root password (will be disabled, use sudo)
-rootpw --lock
+# Root password (temporary, cleared in %post)
+rootpw --plaintext maleo
 
-# User creation (will be done by installer)
-# user --name=maleo --password=maleo --groups=wheel
+# User creation
+user --name=maleo --groups=wheel --plaintext --password=maleo
 
 # System authorization
 authselect select sssd
@@ -39,6 +39,7 @@ repo --name=updates --mirrorlist="https://mirrors.fedoraproject.org/mirrorlist?r
 # repo --name=rpmfusion-nonfree --metalink="https://mirrors.rpmfusion.org/metalink?repo=nonfree-fedora-43&arch=x86_64"
 repo --name=rpmfusion-free --baseurl="http://mirror.web-ster.com/rpmfusion/free/fedora/releases/43/Everything/x86_64/os/"
 repo --name=rpmfusion-nonfree --baseurl="http://mirror.web-ster.com/rpmfusion/nonfree/fedora/releases/43/Everything/x86_64/os/"
+repo --name=solopasha-hyprland --baseurl="https://download.copr.fedorainfracloud.org/results/solopasha/hyprland/fedora-43-x86_64/"
 
 # System bootloader configuration
 bootloader --location=mbr --boot-drive=sda --timeout=5 --append="rhgb quiet"
@@ -92,13 +93,46 @@ git
 htop
 btop
 
-# Wayland and Hyprland will be installed post-install
-# as they require COPR repositories
+# Desktop Environment
+sddm
+hyprland
+waybar
+mako
+rofi-wayland
+kitty
+lxpolkit
+xdg-desktop-portal-hyprland
+thunar
+network-manager-applet
+blueman
+
+# Theme
+sddm-kcm
 
 %end
 
 # Post-installation script
 %post --log=/root/maleo-kickstart-post.log
+
+# Enable graphical login
+systemctl set-default graphical.target
+systemctl enable sddm
+
+# Allow empty passwords
+sed -i 's/nullok_secure/nullok/' /etc/pam.d/system-auth
+sed -i 's/nullok_secure/nullok/' /etc/pam.d/password-auth
+
+# Remove passwords for root and maleo
+passwd -d root
+passwd -d maleo
+
+# Configure SDDM autologin (optional, but good for Live)
+mkdir -p /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/autologin.conf << EOF
+[Autologin]
+User=maleo
+Session=hyprland
+EOF
 
 # Create maleo directory
 mkdir -p /usr/share/maleo
@@ -108,11 +142,34 @@ cd /tmp
 git clone https://github.com/igos-nusantara/maleo-os.git
 cp -r maleo-os/* /usr/share/maleo/
 
-# Create first-run script
+# Pre-configure 'maleo' user
+echo "Configuring maleo user..."
+MALEO_HOME="/home/maleo"
+MALEO_SHARE="$MALEO_HOME/.local/share/maleo"
+MALEO_CONFIG="$MALEO_HOME/.config"
+
+# Create directories
+mkdir -p "$MALEO_SHARE"
+mkdir -p "$MALEO_CONFIG"
+
+# Copy Maleo files
+cp -r /usr/share/maleo/* "$MALEO_SHARE/"
+
+# Deploy configs
+cp -r "$MALEO_SHARE/config/"* "$MALEO_CONFIG/"
+
+# Set default theme (Catppuccin)
+mkdir -p "$MALEO_CONFIG/maleo/current"
+ln -sf "$MALEO_SHARE/themes/catppuccin" "$MALEO_CONFIG/maleo/current/theme"
+
+# Fix permissions
+chown -R maleo:maleo "$MALEO_HOME"
+
+# Create first-run script (updated to reflect pre-install)
 cat > /etc/profile.d/maleo-first-run.sh << 'EOF'
 if [ ! -f "$HOME/.maleo-installed" ]; then
     echo "Welcome to Maleo Fedora Remix!"
-    echo "Run 'maleo-install' to complete the installation."
+    touch "$HOME/.maleo-installed"
 fi
 EOF
 
