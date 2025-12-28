@@ -53,10 +53,8 @@ clearpart --all --initlabel
 # Disk partitioning (BTRFS with subvolumes)
 part /boot/efi --fstype="efi" --size=512 --fsoptions="umask=0077,shortname=winnt"
 part /boot --fstype="ext4" --size=1024
-part btrfs.01 --fstype="btrfs" --grow --size=1
-btrfs none --label=fedora --data=single btrfs.01
-btrfs / --subvol --name=root LABEL=fedora
-btrfs /home --subvol --name=home LABEL=fedora
+# Set a large fixed size to ensure livecd-creator allocates enough space for the build image
+part / --fstype="ext4" --size=8192 --grow
 
 # Reboot after installation
 reboot
@@ -84,27 +82,85 @@ dracut-live
 -@kde-desktop
 
 # System utilities
-bash-completion
-vim
-nano
-wget
-curl
-git
-htop
+# Omadora Packages
+alacritty
+bat
+bind-utils
+brightnessctl
 btop
-
-# Desktop Environment
-sddm
+# cascadia-code-nf-fonts (use fedora standard if needed, or omit)
+# cascadia-mono-nf-fonts
+chromium
+clang
+dbus-tools
+du-dust
+evince
+fastfetch
+fcitx5
+fcitx5-configtool
+fcitx5-gtk
+fcitx5-qt
+fd-find
+fontawesome-fonts-all
+fzf
+gnome-calculator
+gnome-themes-extra
+google-noto-fonts-common
+gum
+gvfs-mtp
+gvfs-smb
+hypridle
 hyprland
-waybar
+# hyprland-qtutils (missing)
+hyprlock
+# hyprpicker
+# hyprpolkitagent (missing)
+hyprshot
+# hyprsunset (missing)
+imv
+iputils
+iwd
+kvantum-qt5
 mako
-rofi-wayland
-kitty
-lxpolkit
-xdg-desktop-portal-hyprland
-thunar
+
+mpv
+nautilus
+neovim
 network-manager-applet
-blueman
+pciutils
+pipewire-devel
+pipx
+playerctl
+plocate
+plymouth
+plymouth-plugin-*
+power-profiles-daemon
+ripgrep
+rofi-wayland
+satty
+sddm
+sddm-kcm
+slurp
+sushi
+swaybg
+tar
+thunar
+tldr
+unzip
+usbutils
+# uwsm (missing)
+waybar
+wf-recorder
+wget
+whois
+wl-clipboard
+wofi
+xdg-desktop-portal-gtk
+xdg-desktop-portal-hyprland
+xdg-user-dirs
+xmlstarlet
+yaru-icon-theme
+zoxide
 
 # Theme
 sddm-kcm
@@ -150,131 +206,57 @@ EOF
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/wheel-nopasswd
 chmod 440 /etc/sudoers.d/wheel-nopasswd
 
-# Create basic Hyprland config for all users
-mkdir -p /etc/skel/.config/hypr
-cat > /etc/skel/.config/hypr/hyprland.conf << 'HYPREOF'
-# Maleo Hyprland Configuration
-exec-once = waybar
-exec-once = mako
+%end
 
-# Monitor configuration
-monitor=,preferred,auto,1
+# Post-installation script (nochroot)
+%post --nochroot
 
-# Input configuration
-input {
-    kb_layout = us
-    follow_mouse = 1
-}
+echo "Configuring Maleo..."
+INSTALL_ROOT=$INSTALL_ROOT
 
-# General settings
-general {
-    gaps_in = 5
-    gaps_out = 10
-    border_size = 2
-    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
-    col.inactive_border = rgba(595959aa)
-    layout = dwindle
-}
+# Copy configs from omadora (locally cloned)
+if [ -d /maleo-os/omadora ]; then
+    echo "Copying Omadora configs..."
+    mkdir -p $INSTALL_ROOT/etc/skel/.config
+    mkdir -p $INSTALL_ROOT/etc/skel/.local/share/maleo
+    mkdir -p $INSTALL_ROOT/usr/local/bin
 
-# Decoration
-decoration {
-    rounding = 10
-    blur {
-        enabled = true
-        size = 3
-        passes = 1
-    }
-    drop_shadow = yes
-    shadow_range = 4
-    shadow_render_power = 3
-}
+    # Copy configs
+    cp -r /maleo-os/omadora/config/* $INSTALL_ROOT/etc/skel/.config/
+    
+    # Copy themes/assets if available (checking structure)
+    if [ -d /maleo-os/omadora/themes ]; then
+        cp -r /maleo-os/omadora/themes $INSTALL_ROOT/etc/skel/.local/share/maleo/
+    fi
 
-# Animations
-animations {
-    enabled = yes
-    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
-    animation = windows, 1, 7, myBezier
-    animation = windowsOut, 1, 7, default, popin 80%
-    animation = border, 1, 10, default
-    animation = fade, 1, 7, default
-    animation = workspaces, 1, 6, default
-}
-
-# Keybindings
-$mainMod = SUPER
-bind = $mainMod, RETURN, exec, kitty
-bind = $mainMod, Q, killactive,
-bind = $mainMod, M, exit,
-bind = $mainMod, E, exec, thunar
-bind = $mainMod, V, togglefloating,
-bind = $mainMod, D, exec, rofi -show drun
-
-# Move focus
-bind = $mainMod, left, movefocus, l
-bind = $mainMod, right, movefocus, r
-bind = $mainMod, up, movefocus, u
-bind = $mainMod, down, movefocus, d
-
-# Switch workspaces
-bind = $mainMod, 1, workspace, 1
-bind = $mainMod, 2, workspace, 2
-bind = $mainMod, 3, workspace, 3
-bind = $mainMod, 4, workspace, 4
-bind = $mainMod, 5, workspace, 5
-
-# Move window to workspace
-bind = $mainMod SHIFT, 1, movetoworkspace, 1
-bind = $mainMod SHIFT, 2, movetoworkspace, 2
-bind = $mainMod SHIFT, 3, movetoworkspace, 3
-bind = $mainMod SHIFT, 4, movetoworkspace, 4
-bind = $mainMod SHIFT, 5, movetoworkspace, 5
-HYPREOF
-
-# Copy install scripts to system (they're already in the build context)
-# Note: The install/ directory from the repo is available during build
-mkdir -p /usr/share/maleo
-if [ -d /maleo-os/install ]; then
-    cp -r /maleo-os/install /usr/share/maleo/
-    cp -r /maleo-os/config /usr/share/maleo/ 2>/dev/null || true
-    cp -r /maleo-os/themes /usr/share/maleo/ 2>/dev/null || true
-fi
-
-# Create maleo-install command for post-boot configuration
-cat > /usr/local/bin/maleo-install << 'INSTALLEOF'
-#!/bin/bash
-
-# Check if install scripts exist
-if [ ! -d /usr/share/maleo/install ]; then
-    echo "Error: Maleo install scripts not found!"
-    echo "Please clone the repository: git clone https://github.com/igos-nusantara/maleo-os.git"
-    exit 1
-fi
-
-# Copy to user directory
-mkdir -p ~/.local/share/maleo
-cp -r /usr/share/maleo/* ~/.local/share/maleo/
-
-# Run installer
-cd ~/.local/share/maleo
-if [ -f install/install.sh ]; then
-    ./install/install.sh
-    touch ~/.maleo-installed
+    # Copy binaries
+    if [ -d /maleo-os/omadora/bin ]; then
+        cp -r /maleo-os/omadora/bin/* $INSTALL_ROOT/usr/local/bin/
+        chmod +x $INSTALL_ROOT/usr/local/bin/*
+    fi
 else
-    echo "Error: install.sh not found!"
-    exit 1
+    echo "Warning: omadora not found in build context!"
 fi
-INSTALLEOF
 
-chmod +x /usr/local/bin/maleo-install
+# Rebrand Omadora -> Maleo in all copied configs
+find $INSTALL_ROOT/etc/skel/.config -type f -exec sed -i 's/Omadora/Maleo/g' {} +
+find $INSTALL_ROOT/etc/skel/.config -type f -exec sed -i 's/omadora/maleo/g' {} +
 
-# Create welcome message
-cat > /etc/profile.d/maleo-welcome.sh << 'WELCOMEEOF'
-if [ ! -f "$HOME/.maleo-installed" ] && [ -n "$PS1" ]; then
-    echo ""
-    echo "Welcome to MaleoOS!"
-    echo "To install additional configurations, run: maleo-install"
-    echo ""
+# Fix hyprland.conf imports to point to ~/.config instead of ~/.local/share/omadora/default
+# Omadora uses a complex include structure. We might need to simplify it or ensure defaults are copied.
+# Checking omadora configs: it sources ~/.local/share/omadora/default/...
+# We need to copy 'default' folder to ~/.local/share/maleo/default
+
+if [ -d /maleo-os/omadora/default ]; then
+    mkdir -p $INSTALL_ROOT/etc/skel/.local/share/maleo/default
+    cp -r /maleo-os/omadora/default/* $INSTALL_ROOT/etc/skel/.local/share/maleo/default/
 fi
-WELCOMEEOF
+
+# Fix paths in hyprland.conf
+sed -i 's|~/.local/share/omadora|~/.local/share/maleo|g' $INSTALL_ROOT/etc/skel/.config/hypr/hyprland.conf || true
+
+echo "Maleo configuration installed."
 
 %end
+
+
