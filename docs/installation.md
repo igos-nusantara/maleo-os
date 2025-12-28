@@ -21,7 +21,7 @@
 ### Method 1: ISO Installation (Recommended)
 
 1. **Download ISO**
-   - Get the latest ISO from [Releases](https://github.com/yourusername/maleo-fedora-remix/releases)
+   - Get the latest ISO from [Releases](https://github.com/igos-nusantara/maleo-os/releases)
    - Verify checksum: `sha256sum -c maleo-*.iso.sha256`
 
 2. **Create Bootable USB**
@@ -61,8 +61,8 @@ If you already have Fedora 43+ installed:
 
 1. **Clone Repository**
    ```bash
-   git clone https://github.com/yourusername/maleo-fedora-remix.git
-   cd maleo-fedora-remix
+   git clone https://github.com/igos-nusantara/maleo-os.git
+   cd maleo-os
    ```
 
 2. **Run Installer**
@@ -174,7 +174,7 @@ If you already have Fedora 43+ installed:
 ## Getting Help
 
 - **Documentation**: [docs/](../docs/)
-- **GitHub Issues**: [Report a bug](https://github.com/yourusername/maleo-fedora-remix/issues)
+- **GitHub Issues**: [Report a bug](https://github.com/igos-nusantara/maleo-os/issues)
 - **Community**: Join our Discord/Matrix
 
 ## Next Steps

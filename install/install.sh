@@ -86,7 +86,7 @@ check_internet() {
 
 # Main installation
 main() {
-    clear
+    #clear
     echo -e "${GREEN}${MALEO_ART}${NC}"
     
     log_info "Starting Maleo Fedora Remix installation..."
